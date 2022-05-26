@@ -6,21 +6,19 @@ import 'OnboardingWidget.dart';
 class Onboarding extends StatelessWidget {
   final controller = PageController();
 
-  Onboarding({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: PageView(
         onPageChanged: (index) {
           if (index == 2) {
-             StaticVar.provider(context, listen: false).changeSet();
+            StaticVar.provider(context, listen: false).changeSet();
           } else {
-             StaticVar.provider(context, listen: false).isLasstReturn();
+            StaticVar.provider(context, listen: false).isLasstReturn();
           }
         },
         controller: controller,
-        children:  [
+        children: [
           OnboardingWidget(
             "Welcome to the Foodes.",
             "assets/Image/onboarding-0.png",

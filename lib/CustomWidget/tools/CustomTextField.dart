@@ -6,14 +6,16 @@ class CustomTextField extends StatelessWidget {
   TextInputType textInputType;
   bool? obscureText;
   String? helperText;
+  TextEditingController? controller;
 
   CustomTextField(this.labelText, this.icon, this.textInputType,
-      {this.obscureText, this.helperText, Key? key})
+      {this.obscureText, this.controller, this.helperText, Key? key})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       cursorColor: Colors.black,
       decoration: InputDecoration(
         focusedBorder: UnderlineInputBorder(

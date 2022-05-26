@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 
 class FunctionProvider extends ChangeNotifier {
@@ -5,6 +6,16 @@ class FunctionProvider extends ChangeNotifier {
   bool obscure = true;
   int index = 0;
   bool switchValue = true;
+
+  static User? credential = FirebaseAuth.instance.currentUser;
+  setCredential(User? cre) {
+    credential = cre;
+    notifyListeners();
+  }
+
+  User? getCredential() {
+    return credential;
+  }
 
   changeSwitchValue(bool value) {
     switchValue = value;

@@ -3,15 +3,13 @@ import 'package:project1/CustomWidget/partsWidget/CustomSearchBar.dart';
 import 'package:project1/CustomWidget/partsWidget/CustomTapBarFoodView.dart';
 import 'package:project1/CustomWidget/tools/CustomDescountCard.dart';
 import 'package:project1/CustomWidget/tools/CustomText.dart';
+import 'package:project1/FunctionFireStoreProvider.dart';
+import 'package:provider/provider.dart';
 
-class HomeScrean extends StatefulWidget {
-  @override
-  State<HomeScrean> createState() => _HomeScreanState();
-}
-
-class _HomeScreanState extends State<HomeScrean> {
+class HomeScrean extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    Provider.of<FunctionFireStoreProvider>(context).setUserName(context);
     return ListView(
       children: [
         Container(
@@ -23,7 +21,10 @@ class _HomeScreanState extends State<HomeScrean> {
             children: [
               Row(
                 children: [
-                  CustomText("Good morning Ahmed,",
+                  CustomText(
+                      "Good morning " +
+                          Provider.of<FunctionFireStoreProvider>(context)
+                              .getUserName(),
                       style:
                           TextStyle(fontSize: 18, color: Colors.grey.shade400)),
                 ],

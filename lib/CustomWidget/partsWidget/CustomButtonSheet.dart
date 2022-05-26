@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:project1/CustomWidget/StaticVar.dart';
 import 'package:project1/CustomWidget/tools/CustomTextButton.dart';
 import 'package:project1/LoginScrean/LoginScrean.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CustomButtonSheet extends StatelessWidget {
   final _black = Colors.black;
@@ -20,6 +21,8 @@ class CustomButtonSheet extends StatelessWidget {
     return StaticVar.provider(context).isLasst
         ? Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             CustomTextButton(() async {
+              final prefs = await SharedPreferences.getInstance();
+              prefs.setBool("showHome", true);
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (context) => LoginScrean(),

@@ -1,8 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:project1/CustomWidget/tools/CustomIcon.dart';
 import 'package:project1/CustomWidget/StaticVar.dart';
 import 'package:project1/CustomWidget/tools/CustomTextButton.dart';
 import 'package:project1/LoginScrean/ForgetScrean.dart';
+import 'package:project1/FunctionAuthProvider.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../CustomWidget/tools/CustomText.dart';
 import '../PageScrean/CountrolScrean.dart';
 import 'RegisterScrean.dart';
@@ -11,6 +15,9 @@ import '../CustomWidget/tools/CustomTextField.dart';
 class LoginScrean extends StatelessWidget {
   LoginScrean({Key? key}) : super(key: key);
   final _provid = StaticVar.provider;
+
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +44,13 @@ class LoginScrean extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CustomTextField(
-                      "Email",
-                      CustomIcon(
-                        Icons.mail_outline,
-                      ),
-                      TextInputType.emailAddress),
+                    "Email",
+                    CustomIcon(
+                      Icons.mail_outline,
+                    ),
+                    TextInputType.emailAddress,
+                    controller: emailController,
+                  ),
                   CustomTextField(
                     "Password",
                     IconButton(
@@ -54,6 +63,7 @@ class LoginScrean extends StatelessWidget {
                     ),
                     TextInputType.visiblePassword,
                     obscureText: _provid(context).obscure,
+                    controller: passwordController,
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -70,18 +80,57 @@ class LoginScrean extends StatelessWidget {
                     ],
                   ),
                   CustomTextButton(
-                    () {
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(
-                          builder: (context) => CountrolScren()));
+                    () async {
+                      String email = emailController.text;
+                      String password = passwordController.text;
+                      if (email.isNotEmpty && password.isNotEmpty) {
+                        final credential =
+                            await Provider.of<FunctionAuthProvider>(context,
+                                    listen: false)
+                                .signInWithEmailAndPassword(email, password);
+                        if (credential != null) {
+                          StaticVar.provider(context, listen: false)
+                              .setCredential(credential.user);
+                          final prefs = await SharedPreferences.getInstance();
+                          prefs.setBool("login", true);
+                          Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                  builder: (context) => CountrolScren()));
+                        }
+                      }
                     },
                     "Sign in",
                     Colors.black,
                     buttonStyle: StaticVar.buttonStyleAmber,
                   ),
-                  CustomTextButton.chiled(() {
-                    Navigator.of(context).pushReplacement(MaterialPageRoute(
-                      builder: (context) => CountrolScren(),
-                    ));
+                  CustomTextButton.chiled(() async {
+                    final credential = await Provider.of<FunctionAuthProvider>(
+                            context,
+                            listen: false)
+                        .signInWithFacebook();
+                    if (credential?.user?.uid != null) {
+                      final prefs = await SharedPreferences.getInstance();
+                      prefs.setBool("login", true);
+
+                      StaticVar.provider(context, listen: false)
+                          .setCredential(credential?.user);
+                      final user = credential?.user;
+
+                      final data = {
+                        "email": user?.email,
+                        "userName": user?.displayName,
+                        "phone": user?.phoneNumber ?? "No Data",
+                        "photoURL": user?.photoURL
+                      };
+
+                      FirebaseFirestore.instance
+                          .collection("Users")
+                          .doc(credential?.user?.uid)
+                          .set(data);
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (context) => CountrolScren(),
+                      ));
+                    }
                   },
                       Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -102,8 +151,8 @@ class LoginScrean extends StatelessWidget {
                           "Register",
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        onTap: ()  {
-                           _provid(context, listen: false).restartObscure();
+                        onTap: () {
+                          _provid(context, listen: false).restartObscure();
                           Navigator.of(context)
                               .pushReplacement(MaterialPageRoute(
                             builder: (context) => RegisterScrean(),

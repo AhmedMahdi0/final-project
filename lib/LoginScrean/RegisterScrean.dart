@@ -1,6 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:project1/CustomWidget/tools/CustomTextButton.dart';
+import 'package:project1/FunctionAuthProvider.dart';
 import 'package:project1/LoginScrean/LoginScrean.dart';
+import 'package:project1/PageScrean/CountrolScrean.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../CustomWidget/tools/CustomIcon.dart';
 import '../CustomWidget/tools/CustomText.dart';
 import '../CustomWidget/StaticVar.dart';
@@ -9,6 +14,11 @@ import '../CustomWidget/tools/CustomTextField.dart';
 class RegisterScrean extends StatelessWidget {
   RegisterScrean({Key? key}) : super(key: key);
   final _provid = StaticVar.provider;
+
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController userNameController = TextEditingController();
+  TextEditingController phoneController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -35,23 +45,29 @@ class RegisterScrean extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CustomTextField(
-                      "FULL NAME",
-                      CustomIcon(
-                        Icons.person_outline,
-                      ),
-                      TextInputType.text),
+                    "FULL NAME",
+                    CustomIcon(
+                      Icons.person_outline,
+                    ),
+                    TextInputType.text,
+                    controller: userNameController,
+                  ),
                   CustomTextField(
-                      "Email",
-                      CustomIcon(
-                        Icons.mail_outline,
-                      ),
-                      TextInputType.emailAddress),
+                    "Email",
+                    CustomIcon(
+                      Icons.mail_outline,
+                    ),
+                    TextInputType.emailAddress,
+                    controller: emailController,
+                  ),
                   CustomTextField(
-                      "PHONE",
-                      CustomIcon(
-                        Icons.phone_iphone_outlined,
-                      ),
-                      TextInputType.phone),
+                    "PHONE",
+                    CustomIcon(
+                      Icons.phone_iphone_outlined,
+                    ),
+                    TextInputType.phone,
+                    controller: phoneController,
+                  ),
                   CustomTextField(
                     "Password",
                     IconButton(
@@ -64,15 +80,71 @@ class RegisterScrean extends StatelessWidget {
                     ),
                     TextInputType.visiblePassword,
                     obscureText: _provid(context).obscure,
+                    controller: passwordController,
                   ),
                   CustomTextButton(
-                    () {},
+                    () async {
+                      String email = emailController.text;
+                      String password = passwordController.text;
+                      String userName = userNameController.text;
+                      String phone = phoneController.text;
+
+                      if (email.isNotEmpty &&
+                          password.isNotEmpty &&
+                          userName.isNotEmpty &&
+                          phone.isNotEmpty) {
+                        final credential =
+                            await Provider.of<FunctionAuthProvider>(context,
+                                    listen: false)
+                                .createUserWithEmailAndPassword(
+                                    email, password, userName, phone);
+                        if (credential != null) {
+                          StaticVar.provider(context, listen: false)
+                              .setCredential(credential.user);
+                          final prefs = await SharedPreferences.getInstance();
+                          prefs.setBool("login", true);
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => CountrolScren(),
+                            ),
+                          );
+                        }
+                      }
+                    },
                     "Register",
                     Colors.black,
                     buttonStyle: StaticVar.buttonStyleAmber,
                   ),
-                  CustomTextButton.chiled(
-                      () {},
+                  CustomTextButton.chiled(() async {
+                    final credential = await Provider.of<FunctionAuthProvider>(
+                            context,
+                            listen: false)
+                        .signInWithFacebook();
+                    if (credential != null) {
+                      StaticVar.provider(context, listen: false)
+                          .setCredential(credential.user);
+                      final user = credential.user;
+
+                      final data = {
+                        "email": user?.email,
+                        "userName": user?.displayName,
+                        "phone": user?.phoneNumber,
+                        "photoURL": user?.photoURL ?? "No Data"
+                      };
+
+                      FirebaseFirestore.instance
+                          .collection("Users")
+                          .doc(credential.user?.uid)
+                          .set(data);
+
+                      final prefs = await SharedPreferences.getInstance();
+                      prefs.setBool("login", true);
+
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (context) => CountrolScren(),
+                      ));
+                    }
+                  },
                       Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
